@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pos_wisata_app/core/assets/assets.gen.dart';
 import 'package:pos_wisata_app/core/components/spaces.dart';
 import 'package:pos_wisata_app/core/components/textfield_custom.dart';
 import 'package:pos_wisata_app/core/constants/colors.dart';
 import 'package:pos_wisata_app/core/core.dart';
+import 'package:pos_wisata_app/ui/auth/bloc/bloc/login_bloc.dart';
 
 import '../home/pages/main_page.dart';
 
@@ -66,11 +68,44 @@ class LoginPage extends StatelessWidget {
                             obscureText: true,
                           ),
                           const SpaceHeight(86.0),
-                          Button.filled(
-                            onPressed: () {
-                              context.pushReplacement(const MainPage());
+                          BlocListener<LoginBloc, LoginState>(
+                            listener: (context, state) {
+                              state.maybeWhen(
+                                orElse: () {},
+                                success: (data) {
+                                  context.pushReplacement(MainPage());
+                                },
+                                error: (message) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(message),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                },
+                              );
                             },
-                            label: 'Login',
+                            child: BlocBuilder<LoginBloc, LoginState>(
+                              builder: (context, state) {
+                                return state.maybeWhen(orElse: () {
+                                  return Button.filled(
+                                    onPressed: () {
+                                      context.read<LoginBloc>().add(
+                                            LoginEvent.login(
+                                              email: emailController.text,
+                                              password: passwordController.text,
+                                            ),
+                                          );
+                                    },
+                                    label: 'Login',
+                                  );
+                                }, loading: () {
+                                  return Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                });
+                              },
+                            ),
                           ),
                           const SpaceHeight(128.0),
                         ],

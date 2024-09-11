@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:pos_wisata_app/core/core.dart';
-import 'package:pos_wisata_app/ui/intro/login_page.dart';
+import 'package:pos_wisata_app/ui/auth/login_page.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});

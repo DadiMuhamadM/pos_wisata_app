@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/core.dart';
-import '../../intro/login_page.dart';
+import '../../auth/login_page.dart';
 
 class LogoutTicketDialog extends StatelessWidget {
   const LogoutTicketDialog({super.key});
