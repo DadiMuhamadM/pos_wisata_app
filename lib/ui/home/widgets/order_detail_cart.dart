@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:pos_wisata_app/core/components/spaces.dart';
 import 'package:pos_wisata_app/core/constants/colors.dart';
 import 'package:pos_wisata_app/core/core.dart';
+import 'package:pos_wisata_app/ui/home/bloc/checkout/models/order_item.dart';
 import 'package:pos_wisata_app/ui/home/models/product_model.dart';
 
 class OrderDetailCard extends StatelessWidget {
-  final ProductModel item;
+  final OrderItem item;
   const OrderDetailCard({super.key, required this.item});
 
   @override
@@ -20,11 +21,11 @@ class OrderDetailCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            item.productName,
+            item.product.name ?? '',
             style: const TextStyle(fontSize: 15.0),
           ),
           Text(
-            item.type,
+            item.product.category?.name ?? '',
             style: const TextStyle(fontSize: 11.0),
           ),
           const SpaceHeight(8.0),
@@ -32,11 +33,11 @@ class OrderDetailCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${item.price.currencyFormatRp} x ${item.quantity}',
+                '${item.product.price!.currencyFormatRp} x ${item.quantity}',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               Text(
-                (item.price * item.quantity).currencyFormatRp,
+                (item.product.price! * item.quantity).currencyFormatRp,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],

@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pos_wisata_app/ui/home/bloc/checkout/checkout_bloc.dart';
+import 'package:pos_wisata_app/ui/home/bloc/checkout/models/order_item.dart';
 
 import '../../../core/core.dart';
+import '../../../data/models/response/product_response_model.dart';
 import '../models/product_model.dart';
 
-class OrderCard extends StatelessWidget {
-  final ProductModel item;
+class OrderCard extends StatefulWidget {
+  final Product item;
   const OrderCard({super.key, required this.item});
 
+  @override
+  State<OrderCard> createState() => _OrderCardState();
+}
+
+class _OrderCardState extends State<OrderCard> {
   @override
   Widget build(BuildContext context) {
     final quantityNotifier = ValueNotifier(0);
@@ -23,33 +32,52 @@ class OrderCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  item.productName,
+                  widget.item.name ?? '',
                   style: const TextStyle(fontSize: 15.0),
                 ),
               ),
               InkWell(
                 onTap: () {
-                  if (quantityNotifier.value > 0) {
-                    quantityNotifier.value--;
-                  }
+                  context
+                      .read<CheckoutBloc>()
+                      .add(CheckoutEvent.removeCheckout(widget.item));
+                  // quantityNotifier.value -= 1;
                 },
                 child: Assets.icons.reduceQuantity.svg(),
               ),
-              ValueListenableBuilder(
-                valueListenable: quantityNotifier,
-                builder: (context, value, _) => Text(
-                  '$value',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+              BlocBuilder<CheckoutBloc, CheckoutState>(
+                builder: (context, state) {
+                  final quantity = state.maybeWhen(
+                    success: (checkout) => checkout
+                        .firstWhere(
+                          (element) => element.product.id == widget.item.id,
+                          orElse: () => OrderItem(
+                            product: widget.item,
+                            quantity: 0,
+                          ),
+                        )
+                        .quantity,
+                    orElse: () => 0,
+                  );
+                  return Text(
+                    quantity.toString(),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  );
+                },
               ),
               InkWell(
-                onTap: () => quantityNotifier.value++,
+                onTap: () {
+                  context
+                      .read<CheckoutBloc>()
+                      .add(CheckoutEvent.addCheckout(widget.item));
+                  // quantityNotifier.value += 1;
+                },
                 child: Assets.icons.addQuantity.svg(),
               ),
             ],
           ),
           Text(
-            item.type,
+            widget.item.category?.name ?? '',
             style: const TextStyle(fontSize: 11.0),
           ),
           const SpaceHeight(8.0),
@@ -57,15 +85,39 @@ class OrderCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                item.price.currencyFormatRp,
+                widget.item.price!.currencyFormatRp,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              ValueListenableBuilder(
-                valueListenable: quantityNotifier,
-                builder: (context, value, _) => Text(
-                  (item.price * value).currencyFormatRp,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+              BlocBuilder<CheckoutBloc, CheckoutState>(
+                builder: (context, state) {
+                  return state.maybeWhen(success: (checkout) {
+                    final quantity = checkout
+                        .firstWhere(
+                          (element) => element.product.id == widget.item.id,
+                          orElse: () => OrderItem(
+                            product: widget.item,
+                            quantity: 0,
+                          ),
+                        )
+                        .quantity;
+                    return Text(
+                      (widget.item.price! * quantity).currencyFormatRp,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    );
+                  }, orElse: () {
+                    return Text(
+                      '0',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    );
+                  });
+                  // ValueListenableBuilder(
+                  //   valueListenable: quantityNotifier,
+                  //   builder: (context, value, _) => Text(
+                  //     (widget.item.price! * value).currencyFormatRp,
+                  //     style: const TextStyle(fontWeight: FontWeight.bold),
+                  //   ),
+                  // )
+                },
               ),
             ],
           )

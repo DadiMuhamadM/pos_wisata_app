@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pos_wisata_app/core/core.dart';
+import 'package:pos_wisata_app/ui/home/bloc/checkout/checkout_bloc.dart';
 import 'package:pos_wisata_app/ui/home/dialogs/payment_qris_dialog.dart';
 import 'package:pos_wisata_app/ui/home/dialogs/payment_tunai_dialog.dart';
 import 'package:pos_wisata_app/ui/home/models/product_model.dart';
@@ -8,8 +10,9 @@ import 'package:pos_wisata_app/ui/home/widgets/order_detail_cart.dart';
 import 'package:pos_wisata_app/ui/home/widgets/payment_method_button.dart';
 
 class OrderDetailPage extends StatelessWidget {
-  final List<ProductModel> products;
-  const OrderDetailPage({super.key, required this.products});
+  const OrderDetailPage({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,11 +28,20 @@ class OrderDetailPage extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-        itemBuilder: (context, index) => OrderDetailCard(item: products[index]),
-        separatorBuilder: (context, index) => const SpaceHeight(20.0),
-        itemCount: products.length,
+      body: BlocBuilder<CheckoutBloc, CheckoutState>(
+        builder: (context, state) {
+          final products = state.maybeWhen(
+            success: (checkout) => checkout,
+            orElse: () => [],
+          );
+          return ListView.separated(
+            padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
+            itemBuilder: (context, index) =>
+                OrderDetailCard(item: products[index]),
+            separatorBuilder: (context, index) => const SpaceHeight(20.0),
+            itemCount: products.length,
+          );
+        },
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -93,12 +105,27 @@ class OrderDetailPage extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text('Order Summary'),
-                        Text(
-                          140000.currencyFormatRp,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16.0,
-                          ),
+                        BlocBuilder<CheckoutBloc, CheckoutState>(
+                          builder: (context, state) {
+                            return state.maybeWhen(
+                              success: (checkout) {
+                                final total = checkout.fold<int>(
+                                  0,
+                                  (previousValue, element) =>
+                                      previousValue +
+                                      element.product.price! * element.quantity,
+                                );
+                                return Text(
+                                  total.currencyFormatRp,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.0,
+                                  ),
+                                );
+                              },
+                              orElse: () => const Text('0'),
+                            );
+                          },
                         ),
                       ],
                     ),

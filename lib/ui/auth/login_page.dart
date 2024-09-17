@@ -6,7 +6,8 @@ import 'package:pos_wisata_app/core/components/spaces.dart';
 import 'package:pos_wisata_app/core/components/textfield_custom.dart';
 import 'package:pos_wisata_app/core/constants/colors.dart';
 import 'package:pos_wisata_app/core/core.dart';
-import 'package:pos_wisata_app/ui/auth/bloc/bloc/login_bloc.dart';
+import 'package:pos_wisata_app/data/datasources/data_local_datasource.dart';
+import 'package:pos_wisata_app/ui/auth/bloc/login/login_bloc.dart';
 
 import '../home/pages/main_page.dart';
 
@@ -72,7 +73,10 @@ class LoginPage extends StatelessWidget {
                             listener: (context, state) {
                               state.maybeWhen(
                                 orElse: () {},
-                                success: (data) {
+                                success: (data) async {
+                                  // save auth data
+                                  await AuthLocalDataSource()
+                                      .saveAuthData(data);
                                   context.pushReplacement(MainPage());
                                 },
                                 error: (message) {
